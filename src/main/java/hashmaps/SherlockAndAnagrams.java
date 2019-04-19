@@ -1,6 +1,7 @@
 package hashmaps;
 
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,19 +51,19 @@ public class SherlockAndAnagrams {
         return hash;
     }
 
-    private static long factorial(int value) {
-        long factorial = 1;
+    private static BigInteger factorial(int value) {
+        BigInteger factorial = BigInteger.ONE;
         for (int factor = value; factor > 1; factor-- ) {
-            factorial *= factor;
+            factorial = factorial.multiply(BigInteger.valueOf(factor));
         }
         return factorial;
     }
 
     private static int getTotalPairs(int total) {
-        return (int)(factorial(total) / (factorial(total - 2) * 2));
+        return (factorial(total).divide(factorial(total - 2).multiply(BigInteger.valueOf(2L)))).intValue();
     }
 
-    private static int sherlockAndAnagrams(String text) {
+    static int sherlockAndAnagrams(String text) {
         Map<Integer, List<AnagramGroup>> occurrencesMap = new HashMap<>();
         for (int index = 0; index < text.length(); index++) {
             for (int length = 1; index + length <= text.length(); length++) {
