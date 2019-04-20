@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,16 +20,30 @@ public class CountTriplets {
         numbers.forEach(number -> occurrences.put(number, occurrences.getOrDefault(number, 0) + 1));
         long numTriplets = 0;
         for (Long number : occurrences.keySet()) {
-            if (number % gpFactor == 0) {
+            if (gpFactor > 1 && number % gpFactor == 0) {
                 long numberBefore = number / gpFactor;
                 long numberAfter = number * gpFactor;
                 if (occurrences.containsKey(numberBefore) && occurrences.containsKey(numberAfter)) {
                     numTriplets += occurrences.get(numberBefore) * occurrences.get(number)
                         * occurrences.get(numberAfter);
                 }
+            } else if (gpFactor == 1) {
+                numTriplets += getTotalTriplets(occurrences.get(number));
             }
         }
         return numTriplets;
+    }
+
+    private static BigInteger factorial(int value) {
+        BigInteger factorial = BigInteger.ONE;
+        for (int factor = value; factor > 1; factor-- ) {
+            factorial = factorial.multiply(BigInteger.valueOf(factor));
+        }
+        return factorial;
+    }
+
+    private static long getTotalTriplets(int total) {
+        return (factorial(total).divide(factorial(total - 3).multiply(BigInteger.valueOf(6)))).longValue();
     }
 
     public static void main(String[] args) throws IOException {
