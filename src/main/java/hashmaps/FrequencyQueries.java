@@ -17,39 +17,58 @@ public class FrequencyQueries {
 
     // Complete the freqQuery function below.
     private static List<Integer> freqQuery(List<List<Integer>> queries) {
-        Map<Integer, Integer> fakeArray = new HashMap<>();
+        Map<Integer, Integer> frequencyByNumbers = new HashMap<>();
+        Map<Integer, Integer> numbersByFrequency = new HashMap<>();
+
         List<Integer> result = new ArrayList<>();
         for (List<Integer> query : queries) {
             int operation = query.get(0);
             int data = query.get(1);
+
             switch (operation) {
                 case 1:
-                    fakeArray.put(data, fakeArray.getOrDefault(data, 0) + 1);
+                    int freq = frequencyByNumbers.getOrDefault(data, 0);
+                    if (freq > 0) {
+                        decrementOccurrence(numbersByFrequency, freq);
+                    }
+                    freq++;
+                    frequencyByNumbers.put(data, freq);
+                    incrementOccurrence(numbersByFrequency, freq);
                     break;
                 case 2:
-                    if (fakeArray.containsKey(data)) {
-                        if (fakeArray.get(data) - 1 > 0) {
-                            fakeArray.put(data, fakeArray.get(data) - 1);
-                        } else {
-                            fakeArray.remove(data);
-                        }
+                    freq = frequencyByNumbers.getOrDefault(data, 0);
+                    if (freq > 0) {
+                        decrementOccurrence(frequencyByNumbers, data);
+                        decrementOccurrence(numbersByFrequency, freq);
+                        freq = freq - 1;
+                        incrementOccurrence(numbersByFrequency, freq);
                     }
                     break;
                 case 3:
-                    int sizeBefore = result.size();
-                    for (int occurrences : fakeArray.values()) {
-                        if (occurrences == data) {
-                            result.add(1);
-                            break;
-                        }
-                    }
-                    if (sizeBefore == result.size()) {
+                    freq = data;
+                    if (numbersByFrequency.containsKey(freq) && numbersByFrequency.get(freq) > 0) {
+                        result.add(1);
+                    } else {
                         result.add(0);
                     }
                     break;
             }
         }
         return result;
+    }
+
+    private static void decrementOccurrence(Map<Integer, Integer> occurrences, int key) {
+        if (occurrences.containsKey(key)) {
+            if (occurrences.get(key) - 1 > 0) {
+                occurrences.put(key, occurrences.get(key) - 1);
+            } else {
+                occurrences.remove(key);
+            }
+        }
+    }
+
+    private static void incrementOccurrence(Map<Integer, Integer> occurrences, int key) {
+        occurrences.put(key, occurrences.getOrDefault(key, 0) + 1);
     }
 
     public static void main(String[] args) throws IOException {
