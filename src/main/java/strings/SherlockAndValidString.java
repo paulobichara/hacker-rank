@@ -1,5 +1,8 @@
 package strings;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +28,7 @@ public class SherlockAndValidString {
                     canDelete = false;
                     if (countAnalyzed == 1 && currentFrequency < requiredFrequency) {
                         requiredFrequency = currentFrequency;
-                    } else if (currentFrequency < requiredFrequency) {
+                    } else if (currentFrequency < requiredFrequency && currentFrequency > 1) {
                         return NO;
                     }
                 } else {
@@ -46,10 +49,21 @@ public class SherlockAndValidString {
         return  charCountMap;
     }
 
-    public static void main(String[] args) {
-        try (Scanner scanner = new Scanner(System.in); PrintWriter writer = new PrintWriter(System.out)) {
-            writer.println(isValid(scanner.nextLine()));
-        }
+    private static final Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) throws IOException {
+        BufferedWriter bufferedWriter = new BufferedWriter(new PrintWriter(System.out));
+
+        String s = scanner.nextLine();
+
+        String result = isValid(s);
+
+        bufferedWriter.write(result);
+        bufferedWriter.newLine();
+
+        bufferedWriter.close();
+
+        scanner.close();
     }
 
 }
