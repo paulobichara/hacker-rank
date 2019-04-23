@@ -13,7 +13,7 @@ public class SherlockAndValidString {
     // Complete the isValid function below.
     private static String isValid(String text) {
         Map<Character, Integer> charCountMap = getCharCountMap(text);
-        int requiredFrequency = charCountMap.get(text.charAt(0));
+        int requiredFrequency = charCountMap.get(charCountMap.keySet().iterator().next());
         int currentFrequency;
         int countAnalyzed = 0;
         boolean canDelete = true;
@@ -21,12 +21,12 @@ public class SherlockAndValidString {
         for (Character character : charCountMap.keySet()) {
             currentFrequency = charCountMap.get(character);
             if (requiredFrequency != currentFrequency) {
-                boolean isDefaultCase = requiredFrequency + 1 == currentFrequency;
-                boolean isInverseCase = requiredFrequency == currentFrequency + 1 && countAnalyzed <= 1;
-                if (canDelete && (isDefaultCase || isInverseCase)) {
+                if (canDelete && Math.abs(currentFrequency - requiredFrequency) == 1) {
                     canDelete = false;
-                    if (isInverseCase) {
+                    if (countAnalyzed == 1 && currentFrequency < requiredFrequency) {
                         requiredFrequency = currentFrequency;
+                    } else if (currentFrequency < requiredFrequency) {
+                        return NO;
                     }
                 } else {
                     return NO;
