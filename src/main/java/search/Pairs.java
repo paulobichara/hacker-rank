@@ -3,6 +3,7 @@ package search;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -10,24 +11,41 @@ import java.util.Scanner;
 public class Pairs {
 
     // Complete the pairs function below.
-    static int pairs(int factor, int[] numbers) {
-        Map<Integer, Integer> indexesMap = new HashMap<>();
+    static int pairs(int difference, int[] numbers) {
+        Map<Integer, Integer> occurrenceMap = new HashMap<>();
         for (int index = 0; index < numbers.length; index++) {
-            indexesMap.put(numbers[index], indexesMap.getOrDefault(numbers[index], 0) + 1);
+            occurrenceMap.put(numbers[index], occurrenceMap.getOrDefault(numbers[index], 0) + 1);
         }
         int numPairs = 0;
         Map<Integer, Boolean> analyzedMap = new HashMap<>();
         for (int index = 0; index < numbers.length; index++) {
+            int occurrences = occurrenceMap.get(numbers[index]);
             if (!analyzedMap.containsKey(numbers[index])) {
                 analyzedMap.put(numbers[index], true);
-                int other = Math.abs(numbers[index] - factor);
-                if (indexesMap.containsKey(other)) {
-                    numPairs += indexesMap.get(other) * indexesMap.get(numbers[index]);
-                    analyzedMap.put(other, true);
+                int other = numbers[index] > difference ? numbers[index] - difference : difference + numbers[index];
+                if (other != numbers[index]) {
+                    if (occurrenceMap.containsKey(other)) {
+                        numPairs += occurrenceMap.get(other) * occurrences;
+                        analyzedMap.put(other, true);
+                    }
+                } else if (occurrences > 1) {
+                    numPairs += getTotalPairs(occurrenceMap.get(numbers[index]));
                 }
             }
         }
         return numPairs;
+    }
+
+    private static BigInteger factorial(int value) {
+        BigInteger factorial = BigInteger.ONE;
+        for (int factor = value; factor > 1; factor-- ) {
+            factorial = factorial.multiply(BigInteger.valueOf(factor));
+        }
+        return factorial;
+    }
+
+    private static int getTotalPairs(int total) {
+        return (factorial(total).divide(factorial(total - 2).multiply(BigInteger.valueOf(2L)))).intValue();
     }
 
     static int pairsNaive(int factor, int[] numbers) {
