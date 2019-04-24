@@ -10,6 +10,11 @@ import java.util.Scanner;
 
 public class Pairs {
 
+    static class State {
+        boolean analyzedUpper;
+        boolean analyzedLower;
+    }
+
     // Complete the pairs function below.
     static int pairs(int difference, int[] numbers) {
         Map<Integer, Integer> occurrenceMap = new HashMap<>();
@@ -17,16 +22,17 @@ public class Pairs {
             occurrenceMap.put(numbers[index], occurrenceMap.getOrDefault(numbers[index], 0) + 1);
         }
         int numPairs = 0;
-        Map<Integer, Boolean> analyzedMap = new HashMap<>();
+        Map<Integer, State> stateMap = new HashMap<>();
         for (int index = 0; index < numbers.length; index++) {
             int occurrences = occurrenceMap.get(numbers[index]);
-            if (!analyzedMap.containsKey(numbers[index])) {
-                analyzedMap.put(numbers[index], true);
-                int other = numbers[index] > difference ? numbers[index] - difference : difference + numbers[index];
+            int other = numbers[index] > difference ? numbers[index] - difference : difference + numbers[index];
+
+            if (!stateMap.containsKey(numbers[index]) || shouldProcess(numbers[index], other, stateMap.get(numbers[index]))) {
+                updateState(numbers[index], other, stateMap);
                 if (other != numbers[index]) {
                     if (occurrenceMap.containsKey(other)) {
                         numPairs += occurrenceMap.get(other) * occurrences;
-                        analyzedMap.put(other, true);
+                        updateState(other, numbers[index], stateMap);
                     }
                 } else if (occurrences > 1) {
                     numPairs += getTotalPairs(occurrenceMap.get(numbers[index]));
@@ -34,6 +40,26 @@ public class Pairs {
             }
         }
         return numPairs;
+    }
+
+    private static boolean shouldProcess(int number, int other, State state) {
+        return (number >= other && !state.analyzedLower) || (number < other && !state.analyzedUpper);
+    }
+
+    private static void updateState(int number, int other, Map<Integer, State> stateMap) {
+        if (!stateMap.containsKey(number)) {
+            stateMap.put(number, new State());
+        }
+
+        if (number > other) {
+            stateMap.get(number).analyzedLower = true;
+        } else if (number < other) {
+            stateMap.get(number).analyzedUpper = true;
+        } else {
+            State state = stateMap.get(number);
+            state.analyzedLower = true;
+            state.analyzedUpper = true;
+        }
     }
 
     private static BigInteger factorial(int value) {
