@@ -262,7 +262,7 @@ public class TripleSum {
         return numTriplets;
     }
 
-    private static int getPossibleCandidates(SplayTree tree, int upperBound) {
+    private static long getPossibleCandidates(SplayTree tree, int upperBound) {
         Node found = tree.find(upperBound);
         if (found != null) {
             if (found.key > upperBound) {
@@ -310,7 +310,7 @@ public class TripleSum {
         Arrays.sort(distinctC);
 
         Map<Integer, List<Triplet>> tripletsMap = new HashMap<>();
-        int countTriplets = 0;
+        long countTriplets = 0;
         int indexMinAInB = getSearchIndex(distinctB, distinctA[0]);
         int indexMinCInB = getSearchIndex(distinctB, distinctC[0]);
 

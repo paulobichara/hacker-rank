@@ -9,10 +9,10 @@ public class TripleSumTest {
     private static final Random RANDOM = new Random();
 
     private static final int MIN_ARRAY_SIZE = 1;
-    private static final int MAX_ARRAY_SIZE = 5;
+    private static final int MAX_ARRAY_SIZE = 100_000;
 
     private static final int MIN_NUMBER = 1;
-    private static final int MAX_NUMBER = 10;
+    private static final int MAX_NUMBER = 100_000_000;
 
     private static final String MESSAGE = "Failed testing input: \n";
 
