@@ -4,14 +4,17 @@ public class InsertNodeInPosition {
 
     // Complete the insertNodeAtPosition function below.
 
-     private static class  SinglyLinkedListNode {
+    private static class  SinglyLinkedListNode {
         int data;
         SinglyLinkedListNode next;
+
+        SinglyLinkedListNode(int data) {
+            this.data = data;
+        }
      }
 
     static SinglyLinkedListNode insertNodeAtPosition(SinglyLinkedListNode head, int data, int position) {
-         SinglyLinkedListNode node = new SinglyLinkedListNode();
-         node.data = data;
+         SinglyLinkedListNode node = new SinglyLinkedListNode(data);
 
         if (head == null) {
             head = node;
