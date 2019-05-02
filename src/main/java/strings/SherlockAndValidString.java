@@ -1,7 +1,6 @@
 package strings;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -14,31 +13,27 @@ public class SherlockAndValidString {
     private static final String YES = "YES";
     private static final String NO = "NO";
 
-    // Complete the isValid function below.
     private static String isValid(String text) {
         Map<Character, Integer> charCountMap = getCharCountMap(text);
-        int requiredFrequency = charCountMap.get(charCountMap.keySet().iterator().next());
-        int currentFrequency;
-        int countAnalyzed = 0;
-        boolean canDelete = true;
+        Map<Integer, Integer> frequenciesMap = new HashMap<>();
+        charCountMap.forEach((key, value) -> frequenciesMap.put(value, frequenciesMap.getOrDefault(value, 0) + 1));
 
-        for (Character character : charCountMap.keySet()) {
-            currentFrequency = charCountMap.get(character);
-            if (requiredFrequency != currentFrequency) {
-                if (canDelete && Math.abs(currentFrequency - requiredFrequency) == 1) {
-                    canDelete = false;
-                    if (countAnalyzed == 1 && currentFrequency < requiredFrequency) {
-                        requiredFrequency = currentFrequency;
-                    } else if (currentFrequency < requiredFrequency && currentFrequency > 1) {
-                        return NO;
-                    }
-                } else {
-                    return NO;
+        if (frequenciesMap.size() == 1) {
+            return YES;
+        } else if (frequenciesMap.size() == 2) {
+            if (frequenciesMap.containsKey(1) && frequenciesMap.get(1) == 1) {
+                return YES;
+            } else {
+                Iterator<Integer> iterator = frequenciesMap.keySet().iterator();
+                int key1 = iterator.next();
+                int key2 = iterator.next();
+
+                if (Math.abs(key1 - key2) == 1 && (frequenciesMap.get(key1) == 1 || frequenciesMap.get(key2) == 1)) {
+                    return YES;
                 }
             }
-            countAnalyzed++;
         }
-        return YES;
+        return NO;
     }
 
     private static Map<Character, Integer> getCharCountMap(String value) {
