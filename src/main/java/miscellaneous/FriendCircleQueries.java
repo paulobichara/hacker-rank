@@ -3,53 +3,80 @@ package miscellaneous;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.Stack;
 
 public class FriendCircleQueries {
 
-    // Complete the maxCircle function below.
-    private static int[] maxCircle(int[][] queries) {
-        Map<Integer, Set<Integer>> groupsMap = new HashMap<>();
-        Stack<Integer> maxGroupStack = new Stack<>();
-        int[] result = new int[queries.length];
+    static class Element {
+        Element parent;
+        int rank;
+        int data;
+        int numberOfFriends;
 
-        for (int index = 0; index < queries.length; index++) {
-            int[] query = queries[index];
-            Set<Integer> firstFriends = createGroupIfNeeded(groupsMap, query[0]);
-            Set<Integer> secondFriends = createGroupIfNeeded(groupsMap, query[1]);
-
-            firstFriends.addAll(secondFriends);
-            secondFriends.addAll(firstFriends);
-            firstFriends.add(query[1]);
-            secondFriends.add(query[0]);
-
-            if (maxGroupStack.isEmpty()) {
-                maxGroupStack.push(firstFriends.size() + 1);
-            } else {
-                maxGroupStack.push(Math.max(maxGroupStack.peek(), firstFriends.size() + 1));
-            }
-            result[index] = maxGroupStack.peek();
+        Element(int data) {
+            this.data = data;
+            rank = 0;
+            parent = this;
+            numberOfFriends = 0;
         }
 
+        Element getParent() {
+            if (parent != this) {
+                parent = parent.getParent();
+            }
+            return parent;
+        }
+    }
+
+    // Complete the maxCircle function below.
+    static int[] maxCircle(int[][] queries) {
+        Map<Integer, Element> elementsMap = new HashMap<>();
+        int[] result = new int[queries.length];
+        int maxCircle = -1;
+
+        for (int index = 0; index < queries.length; index++) {
+            Element first = createElementIfNeeded(elementsMap, queries[index][0]);
+            Element second = createElementIfNeeded(elementsMap, queries[index][1]);
+            Element root = mergeAndGetRoot(first, second);
+            maxCircle = Math.max(root.numberOfFriends + 1, maxCircle);
+            result[index] = maxCircle;
+        }
         return result;
     }
 
-    private static Set<Integer> createGroupIfNeeded(Map<Integer, Set<Integer>> groupsMap, int number) {
-        Set<Integer> friends;
-        if (!groupsMap.containsKey(number)) {
-            friends = new HashSet<>();
-            groupsMap.put(number, friends);
-        } else {
-            friends = groupsMap.get(number);
+    private static Element createElementIfNeeded(Map<Integer, Element> elementsMap, int data) {
+        Element element = elementsMap.get(data);
+        if (element == null) {
+            element = new Element(data);
+            elementsMap.put(data, element);
         }
-        return friends;
+        return element;
+    }
+
+    private static Element mergeAndGetRoot(Element first, Element second) {
+        Element firstRoot = first.getParent();
+        Element secondRoot = second.getParent();
+
+        if (firstRoot == secondRoot) {
+            return firstRoot.numberOfFriends == 0 ? secondRoot : firstRoot;
+        }
+
+        if (firstRoot.rank > secondRoot.rank) {
+            secondRoot.parent = firstRoot;
+            firstRoot.numberOfFriends = firstRoot.numberOfFriends + secondRoot.numberOfFriends + 1;
+            secondRoot.numberOfFriends = 0;
+            return firstRoot;
+        } else {
+            firstRoot.parent = secondRoot;
+            secondRoot.numberOfFriends = secondRoot.numberOfFriends + firstRoot.numberOfFriends + 1;
+            firstRoot.numberOfFriends = 0;
+            if (secondRoot.rank == firstRoot.rank) {
+                secondRoot.rank++;
+            }
+            return secondRoot;
+        }
     }
 
     private static final Scanner scanner = new Scanner(System.in);
