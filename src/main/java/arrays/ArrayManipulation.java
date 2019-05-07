@@ -55,7 +55,7 @@ public class ArrayManipulation {
         int currentOpIndex = 0;
         Map<Integer, List<Operation>> activeByEndIndex = new HashMap<>();
 
-        for (int index = operations[currentOpIndex].startIndex; index <= operations[operations.length - 1].endIndex; index++) {
+        for (int index = operations[currentOpIndex].startIndex; index <= operations[operations.length - 1].endIndex;) {
             while (currentOpIndex < operations.length && operations[currentOpIndex] != null && operations[currentOpIndex].startIndex == index) {
                 Operation currentOp = operations[currentOpIndex];
                 currentFactor += currentOp.factor;
@@ -63,9 +63,16 @@ public class ArrayManipulation {
                 activeByEndIndex.get(currentOp.endIndex).add(currentOp);
                 currentOpIndex++;
             }
+
             result[index] += currentFactor;
             maxValue = Math.max(maxValue, result[index]);
             currentFactor -= getFinishedFactorForIndex(index, activeByEndIndex);
+
+            if (currentFactor == 0 && currentOpIndex < operations.length) {
+                index = operations[currentOpIndex].startIndex;
+            } else {
+                index++;
+            }
         }
 
         return maxValue;
