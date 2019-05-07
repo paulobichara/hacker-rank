@@ -18,7 +18,8 @@ public class FrequencyQueries {
     // Complete the freqQuery function below.
     private static List<Integer> freqQuery(List<List<Integer>> queries) {
         Map<Integer, Integer> frequencyByNumbers = new HashMap<>();
-        Map<Integer, Integer> numbersByFrequency = new HashMap<>();
+        List<Integer> frequencyCount = new ArrayList<>();
+        frequencyCount.add(0);
 
         List<Integer> result = new ArrayList<>();
         for (List<Integer> query : queries) {
@@ -27,34 +28,53 @@ public class FrequencyQueries {
 
             switch (operation) {
                 case 1:
-                    int freq = frequencyByNumbers.getOrDefault(data, 0);
-                    if (freq > 0) {
-                        decrementOccurrence(numbersByFrequency, freq);
-                    }
-                    freq++;
-                    frequencyByNumbers.put(data, freq);
-                    incrementOccurrence(numbersByFrequency, freq);
+                    insertElement(data, frequencyByNumbers, frequencyCount);
                     break;
                 case 2:
-                    freq = frequencyByNumbers.getOrDefault(data, 0);
-                    if (freq > 0) {
-                        decrementOccurrence(frequencyByNumbers, data);
-                        decrementOccurrence(numbersByFrequency, freq);
-                        freq = freq - 1;
-                        incrementOccurrence(numbersByFrequency, freq);
-                    }
+                    deleteElement(data, frequencyByNumbers, frequencyCount);
                     break;
                 case 3:
-                    freq = data;
-                    if (numbersByFrequency.containsKey(freq) && numbersByFrequency.get(freq) > 0) {
-                        result.add(1);
-                    } else {
-                        result.add(0);
-                    }
+                    searchByFrequency(data, frequencyCount, result);
                     break;
             }
         }
         return result;
+    }
+
+    private static void insertElement(int data, Map<Integer, Integer> frequencyByNumbers, List<Integer> frequencyCount) {
+        int freq = frequencyByNumbers.getOrDefault(data, 0);
+        if (freq > 0) {
+            frequencyCount.set(freq, frequencyCount.get(freq) - 1);
+        }
+        freq++;
+        frequencyByNumbers.put(data, freq);
+        if (freq < frequencyCount.size()) {
+            frequencyCount.set(freq, frequencyCount.get(freq) == null ? 1 : frequencyCount.get(freq) + 1);
+        } else {
+            frequencyCount.add(1);
+        }
+    }
+
+    private static void deleteElement(int data, Map<Integer, Integer> frequencyByNumbers, List<Integer> frequencyCount) {
+        int freq = frequencyByNumbers.getOrDefault(data, 0);
+        if (freq > 0) {
+            decrementOccurrence(frequencyByNumbers, data);
+            if (freq < frequencyCount.size()) {
+                frequencyCount.set(freq, frequencyCount.get(freq) - 1);
+            } else {
+                frequencyCount.add(0);
+            }
+            freq = freq - 1;
+            frequencyCount.set(freq, frequencyCount.get(freq) == null ? 1 : frequencyCount.get(freq) + 1);
+        }
+    }
+
+    private static void searchByFrequency(int freq, List<Integer> frequencyCount, List<Integer> result) {
+        if (freq < frequencyCount.size() && frequencyCount.get(freq) != null && frequencyCount.get(freq) > 0) {
+            result.add(1);
+        } else {
+            result.add(0);
+        }
     }
 
     private static void decrementOccurrence(Map<Integer, Integer> occurrences, int key) {
@@ -65,10 +85,6 @@ public class FrequencyQueries {
                 occurrences.remove(key);
             }
         }
-    }
-
-    private static void incrementOccurrence(Map<Integer, Integer> occurrences, int key) {
-        occurrences.put(key, occurrences.getOrDefault(key, 0) + 1);
     }
 
     public static void main(String[] args) throws IOException {
