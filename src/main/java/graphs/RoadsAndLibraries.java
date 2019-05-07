@@ -4,12 +4,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.PriorityQueue;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
@@ -17,50 +13,11 @@ public class RoadsAndLibraries {
 
     private static class ConnectedComponent {
         private int id;
-        private Map<Integer, Node> nodesMap;
+        private List<Node> nodes;
 
         ConnectedComponent(int id) {
             this.id = id;
-            nodesMap = new HashMap<>();
-        }
-
-        private static class NodeComparator implements Comparator<Node> {
-            Map<Integer, Long> distances;
-
-            NodeComparator(Map<Integer, Long> distances) {
-                this.distances = distances;
-            }
-
-            @Override
-            public int compare(Node o1, Node o2) {
-                return Double.compare(distances.get(o1.value), distances.get(o2.value));
-            }
-        }
-
-        private long getMinimumSpanningTreeEdges() {
-            Map<Integer, Long> distances = new HashMap<>();
-            nodesMap.values().forEach(node -> distances.put(node.value, Long.MAX_VALUE));
-            distances.put(nodesMap.values().iterator().next().value, 0L);
-
-            NodeComparator comparator = new NodeComparator(distances);
-            PriorityQueue<Node> queue = new PriorityQueue<>(comparator);
-            queue.addAll(nodesMap.values());
-
-            long edgeCount = 0;
-
-            while (!queue.isEmpty()) {
-                Node node = queue.poll();
-                for (Node other : node.neighbours) {
-                    long possibility = distances.get(node.value) + 1;
-                    if (!node.equals(other) && queue.contains(other) && distances.get(other.value) > possibility) {
-                        queue.remove(other);
-                        distances.put(other.value, possibility);
-                        queue.add(other);
-                        edgeCount++;
-                    }
-                }
-            }
-            return edgeCount;
+            nodes = new ArrayList<>();
         }
     }
 
@@ -91,7 +48,7 @@ public class RoadsAndLibraries {
 
         void explore(ConnectedComponent component) {
             visited = true;
-            component.nodesMap.put(value, this);
+            component.nodes.add(this);
             for (Node neighbour : neighbours) {
                 if (!neighbour.visited) {
                     neighbour.visited = true;
@@ -157,7 +114,7 @@ public class RoadsAndLibraries {
         List<ConnectedComponent> components = graph.getConnectedComponents();
         long componentsCost = components.size() * costLibrary;
         for (ConnectedComponent component : components) {
-            componentsCost = componentsCost + (component.getMinimumSpanningTreeEdges() * costRoad);
+            componentsCost = componentsCost + (component.nodes.size() - 1) * costRoad;
         }
 
         return Math.min(librariesCost, componentsCost);
