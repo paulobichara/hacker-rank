@@ -1,10 +1,8 @@
 package arrays;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -53,20 +51,19 @@ public class ArrayManipulation {
         long maxValue = Long.MIN_VALUE;
         long currentFactor = 0;
         int currentOpIndex = 0;
-        Map<Integer, List<Operation>> activeByEndIndex = new HashMap<>();
+        Map<Integer, Long> activeByEndIndex = new HashMap<>();
 
         for (int index = operations[currentOpIndex].startIndex; index <= operations[operations.length - 1].endIndex;) {
             while (currentOpIndex < operations.length && operations[currentOpIndex] != null && operations[currentOpIndex].startIndex == index) {
                 Operation currentOp = operations[currentOpIndex];
                 currentFactor += currentOp.factor;
-                activeByEndIndex.computeIfAbsent(currentOp.endIndex, ArrayList::new);
-                activeByEndIndex.get(currentOp.endIndex).add(currentOp);
+                activeByEndIndex.put(currentOp.endIndex, activeByEndIndex.getOrDefault(currentOp.endIndex, 0L) + currentOp.factor);
                 currentOpIndex++;
             }
 
             result[index] += currentFactor;
             maxValue = Math.max(maxValue, result[index]);
-            currentFactor -= getFinishedFactorForIndex(index, activeByEndIndex);
+            currentFactor -= activeByEndIndex.getOrDefault(index, 0L);
 
             if (currentFactor == 0 && currentOpIndex < operations.length) {
                 index = operations[currentOpIndex].startIndex;
@@ -75,29 +72,6 @@ public class ArrayManipulation {
             }
         }
 
-        return maxValue;
-    }
-
-    private static long getFinishedFactorForIndex(int index, Map<Integer, List<Operation>> activeByEndIndex) {
-        long currentFactor = 0;
-        if (activeByEndIndex.get(index) != null) {
-            for (Operation operation : activeByEndIndex.get(index)) {
-                currentFactor += operation.factor;
-            }
-            activeByEndIndex.get(index).clear();
-        }
-        return currentFactor;
-    }
-
-    private static long arrayManipulationNaive(int arraySize, int[][] queries) {
-        long[] result = new long[arraySize];
-        long maxValue = Long.MIN_VALUE;
-        for (int[] operation : queries) {
-            for (int index = operation[0] - 1; index < operation[1]; index++) {
-                result[index] += operation[2];
-                maxValue = Math.max(maxValue, result[index]);
-            }
-        }
         return maxValue;
     }
 
