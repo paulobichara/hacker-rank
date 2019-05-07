@@ -13,11 +13,11 @@ public class RoadsAndLibraries {
 
     private static class ConnectedComponent {
         private int id;
-        private List<Node> nodes;
+        private int size;
 
         ConnectedComponent(int id) {
             this.id = id;
-            nodes = new ArrayList<>();
+            size = 0;
         }
     }
 
@@ -48,7 +48,7 @@ public class RoadsAndLibraries {
 
         void explore(ConnectedComponent component) {
             visited = true;
-            component.nodes.add(this);
+            component.size++;
             for (Node neighbour : neighbours) {
                 if (!neighbour.visited) {
                     neighbour.visited = true;
@@ -76,20 +76,21 @@ public class RoadsAndLibraries {
             return nodes[index];
         }
 
-        List<ConnectedComponent> getConnectedComponents() {
-            List<ConnectedComponent> connectedComponents = new ArrayList<>();
+        long getMinimalCost(int costRoad, int costLibrary) {
             int componentId = 0;
             ConnectedComponent current;
             Node node;
+            long maxCost = nodes.length * costLibrary;
+            long currentCost = 0;
 
-            while ((node = getNextUnvisitedNode()) != null) {
+            while ((node = getNextUnvisitedNode()) != null && currentCost < maxCost) {
                 componentId++;
                 current = new ConnectedComponent(componentId);
-                connectedComponents.add(current);
                 node.explore(current);
+                currentCost = currentCost + costLibrary + (current.size - 1) * costRoad;
             }
 
-            return connectedComponents;
+            return Math.min(maxCost, currentCost);
         }
 
         private Node getNextUnvisitedNode() {
@@ -109,15 +110,7 @@ public class RoadsAndLibraries {
             second.addNeighbour(first);
         }
 
-        long librariesCost = nodesQty * costLibrary;
-
-        List<ConnectedComponent> components = graph.getConnectedComponents();
-        long componentsCost = components.size() * costLibrary;
-        for (ConnectedComponent component : components) {
-            componentsCost = componentsCost + (component.nodes.size() - 1) * costRoad;
-        }
-
-        return Math.min(librariesCost, componentsCost);
+        return graph.getMinimalCost(costRoad, costLibrary);
     }
 
     private static final Scanner scanner = new Scanner(System.in);
