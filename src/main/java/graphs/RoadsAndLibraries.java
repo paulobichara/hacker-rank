@@ -7,23 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Stack;
 import java.util.stream.Stream;
 
 public class RoadsAndLibraries {
 
     private static class ConnectedComponent {
-        private int id;
         private int size;
-
-        ConnectedComponent(int id) {
-            this.id = id;
-            size = 0;
-        }
     }
 
     private static class Node {
         List<Node> neighbours;
-        Integer componentId;
         int value;
         boolean visited;
 
@@ -45,18 +39,6 @@ public class RoadsAndLibraries {
             }
             return this.value == ((Node)obj).value;
         }
-
-        void explore(ConnectedComponent component) {
-            visited = true;
-            component.size++;
-            for (Node neighbour : neighbours) {
-                if (!neighbour.visited) {
-                    neighbour.visited = true;
-                    neighbour.componentId = component.id;
-                    neighbour.explore(component);
-                }
-            }
-        }
     }
 
     private static class Graph {
@@ -76,17 +58,36 @@ public class RoadsAndLibraries {
             return nodes[index];
         }
 
+        private ConnectedComponent explore(Node node) {
+            Stack<Node> stack = new Stack<>();
+            stack.push(node);
+
+            node.visited = true;
+
+            ConnectedComponent component = new ConnectedComponent();
+            component.size++;
+
+            while (!stack.isEmpty()) {
+                Node current = stack.pop();
+                for (Node other : current.neighbours) {
+                    if (!current.equals(other) && !other.visited) {
+                        component.size++;
+                        other.visited = true;
+                        stack.push(other);
+                    }
+                }
+            }
+            return component;
+        }
+
         long getMinimalCost(int costRoad, int costLibrary) {
-            int componentId = 0;
             ConnectedComponent current;
             Node node;
             long maxCost = nodes.length * costLibrary;
             long currentCost = 0;
 
             while ((node = getNextUnvisitedNode()) != null && currentCost < maxCost) {
-                componentId++;
-                current = new ConnectedComponent(componentId);
-                node.explore(current);
+                current = explore(node);
                 currentCost = currentCost + costLibrary + (current.size - 1) * costRoad;
             }
 
