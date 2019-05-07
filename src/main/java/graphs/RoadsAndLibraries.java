@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
-import java.util.stream.Stream;
 
 public class RoadsAndLibraries {
 
@@ -42,8 +41,10 @@ public class RoadsAndLibraries {
 
     private static class Graph {
         private Node[] nodes;
+        private int lastVisited;
 
         Graph(int qtyNodes) {
+            lastVisited = -1;
             nodes = new Node[qtyNodes];
             for (int index = 0; index < qtyNodes; index++) {
                 nodes[index] = new Node(index);
@@ -58,41 +59,47 @@ public class RoadsAndLibraries {
         }
 
         private ConnectedComponent explore(Node node) {
-            Stack<Node> stack = new Stack<>();
-            stack.push(node);
+            Stack<Node> nodeStack = new Stack<>();
+            nodeStack.push(node);
 
             node.visited = true;
 
             ConnectedComponent component = new ConnectedComponent();
             component.size++;
 
-            while (!stack.isEmpty()) {
-                Node current = stack.pop();
+            while (!nodeStack.isEmpty()) {
+                Node current = nodeStack.pop();
                 for (Node other : current.neighbours) {
                     if (!current.equals(other) && !other.visited) {
                         component.size++;
                         other.visited = true;
-                        stack.push(other);
+                        nodeStack.push(other);
                     }
                 }
             }
             return component;
         }
 
-        long getMinimalCost(int costRoad, int costLibrary) {
+        long getMinimalCost(long costRoad, long costLibrary) {
             Node node;
             long maxCost = nodes.length * costLibrary;
             long currentCost = 0;
 
             while ((node = getNextUnvisitedNode()) != null && currentCost < maxCost) {
-                currentCost = currentCost + costLibrary + (explore(node).size - 1) * costRoad;
+                currentCost = currentCost + costLibrary + (explore(node).size - 1L) * costRoad;
             }
 
             return Math.min(maxCost, currentCost);
         }
 
         private Node getNextUnvisitedNode() {
-            return Stream.of(nodes).filter(node -> !node.visited).findFirst().orElse(null);
+            for (int index = lastVisited + 1; index < nodes.length; index++) {
+                lastVisited = index;
+                if (!nodes[index].visited) {
+                    return nodes[index];
+                }
+            }
+            return null;
         }
     }
 
