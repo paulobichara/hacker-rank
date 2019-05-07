@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.stream.Stream;
@@ -81,22 +80,19 @@ public class RoadsAndLibraries {
         }
 
         long getMinimalCost(int costRoad, int costLibrary) {
-            ConnectedComponent current;
             Node node;
             long maxCost = nodes.length * costLibrary;
             long currentCost = 0;
 
             while ((node = getNextUnvisitedNode()) != null && currentCost < maxCost) {
-                current = explore(node);
-                currentCost = currentCost + costLibrary + (current.size - 1) * costRoad;
+                currentCost = currentCost + costLibrary + (explore(node).size - 1) * costRoad;
             }
 
             return Math.min(maxCost, currentCost);
         }
 
         private Node getNextUnvisitedNode() {
-            Optional<Node> optional = Stream.of(nodes).filter(node -> !node.visited).findFirst();
-            return optional.isPresent() ? optional.get() : null;
+            return Stream.of(nodes).filter(node -> !node.visited).findFirst().orElse(null);
         }
     }
 
