@@ -6,18 +6,116 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class FrequencyQueries {
 
+    static class Occurrence {
+        int number;
+        int occurrences;
+
+         Occurrence(int number) {
+            this.number = number;
+            occurrences = 1;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Occurrence)) {
+                return false;
+            }
+            return number == ((Occurrence)obj).number;
+        }
+    }
+
+    static class HashFunction {
+        static final int PRIME = 1_000_000_019;
+        static final int CARDINALITY = 150_000_000;
+
+        long param1;
+        long param2;
+
+        HashFunction() {
+            Random random = new Random();
+            this.param1 = random.nextInt(PRIME - 1) + 1;
+            this.param2 = random.nextInt(PRIME);
+        }
+
+        int calculateHash(int number) {
+            return (int) ((param1 * number + param2) % PRIME) % CARDINALITY;
+        }
+    }
+
+    static class HashTable {
+        HashFunction hashFunction;
+        List<Occurrence>[] table;
+
+        @SuppressWarnings("unchecked")
+        HashTable() {
+            hashFunction = new HashFunction();
+            table = new List[HashFunction.CARDINALITY];
+        }
+
+        private void add(int number) {
+            int hash = hashFunction.calculateHash(number);
+
+            if (table[hash] == null) {
+                table[hash] = new ArrayList<>();
+            }
+
+            Occurrence occurrence = findOccurrence(table[hash], number);
+            if (occurrence == null) {
+                table[hash].add(new Occurrence(number));
+            } else {
+                occurrence.occurrences++;
+            }
+        }
+
+        private void del(int number) {
+            int hash = hashFunction.calculateHash(number);
+
+            if (table[hash] == null) {
+                return;
+            }
+
+            Occurrence occurrence = findOccurrence(table[hash], number);
+            if (occurrence != null && occurrence.occurrences > 0) {
+                occurrence.occurrences--;
+            }
+        }
+
+        private Occurrence findOccurrence(List<Occurrence> occurrences, int number) {
+            if (occurrences == null) {
+                return null;
+            }
+
+            Occurrence occurrence = null;
+            for (Occurrence current : occurrences) {
+                if (current.number == number) {
+                    occurrence = current;
+                    break;
+                }
+            }
+            return occurrence;
+        }
+
+        private int find(int number) {
+            int hash = hashFunction.calculateHash(number);
+            Occurrence occurrence = findOccurrence(table[hash], number);
+            if (occurrence != null) {
+                return occurrence.occurrences;
+            }
+            return 0;
+        }
+    }
+
     // Complete the freqQuery function below.
     private static List<Integer> freqQuery(List<List<Integer>> queries) {
-        Map<Integer, Integer> frequencyByNumbers = new HashMap<>();
+        HashTable frequencyByNumbers = new HashTable();
         int[] frequencyCount = new int[queries.size()];
 
         List<Integer> result = new ArrayList<>();
@@ -40,20 +138,22 @@ public class FrequencyQueries {
         return result;
     }
 
-    private static void insertElement(int data, Map<Integer, Integer> frequencyByNumbers, int[] frequencyCount) {
-        int freq = frequencyByNumbers.getOrDefault(data, 0);
+    private static void insertElement(int data, HashTable frequencyByNumbers, int[] frequencyCount) {
+        int freq = frequencyByNumbers.find(data);
         if (freq > 0) {
             frequencyCount[freq]--;
         }
+
         freq++;
-        frequencyByNumbers.put(data, freq);
         frequencyCount[freq]++;
+
+        frequencyByNumbers.add(data);
     }
 
-    private static void deleteElement(int data, Map<Integer, Integer> frequencyByNumbers, int[] frequencyCount) {
-        int freq = frequencyByNumbers.getOrDefault(data, 0);
+    private static void deleteElement(int data, HashTable frequencyByNumbers, int[] frequencyCount) {
+        int freq = frequencyByNumbers.find(data);
         if (freq > 0) {
-            decrementOccurrence(frequencyByNumbers, data);
+            frequencyByNumbers.del(data);
             frequencyCount[freq]--;
             freq = freq - 1;
             frequencyCount[freq]++;
@@ -65,12 +165,6 @@ public class FrequencyQueries {
             result.add(0);
         } else {
             result.add(1);
-        }
-    }
-
-    private static void decrementOccurrence(Map<Integer, Integer> occurrences, int key) {
-        if (occurrences.containsKey(key)) {
-            occurrences.put(key, occurrences.get(key) > 0 ? occurrences.get(key) - 1 : 0);
         }
     }
 
