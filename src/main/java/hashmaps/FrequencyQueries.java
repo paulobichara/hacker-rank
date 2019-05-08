@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -33,43 +32,49 @@ public class FrequencyQueries {
     }
 
     static class HashFunction {
-        static final int PRIME = 1_000_000_019;
-        static final int CARDINALITY = 150_000_000;
+        static final int MAX_NUMBER = 1_000_000_000;
+        static final int PRIME = 1_000_000_007;
 
-        long param1;
-        long param2;
+        int cardinality;
 
-        HashFunction() {
-            Random random = new Random();
-            this.param1 = random.nextInt(PRIME - 1) + 1;
-            this.param2 = random.nextInt(PRIME);
+        HashFunction(int cardinality) {
+            this.cardinality = cardinality;
         }
 
         int calculateHash(int number) {
-            return (int) ((param1 * number + param2) % PRIME) % CARDINALITY;
+            return (number % PRIME) % cardinality;
         }
     }
 
-    static class HashTable {
+    static class OccurrenceHashTable {
         HashFunction hashFunction;
-        List<Occurrence>[] table;
+        Occurrence[][] table;
+        int[] frequencyCount;
 
-        @SuppressWarnings("unchecked")
-        HashTable() {
-            hashFunction = new HashFunction();
-            table = new List[HashFunction.CARDINALITY];
+
+        OccurrenceHashTable(int numQueries) {
+            this.hashFunction = new HashFunction(100_000_000);
+            table = new Occurrence[hashFunction.cardinality][];
+            frequencyCount = new int[numQueries];
         }
 
         private void add(int number) {
             int hash = hashFunction.calculateHash(number);
 
+            Occurrence occurrence = findOccurrence(table[hash], number);
+            int freq = occurrence == null ? 0 : occurrence.occurrences;
             if (table[hash] == null) {
-                table[hash] = new ArrayList<>();
+                table[hash] = new Occurrence[HashFunction.MAX_NUMBER / hashFunction.cardinality];
+            } else if (freq > 0) {
+                frequencyCount[freq]--;
             }
 
-            Occurrence occurrence = findOccurrence(table[hash], number);
+            freq++;
+            frequencyCount[freq]++;
+
             if (occurrence == null) {
-                table[hash].add(new Occurrence(number));
+                occurrence = new Occurrence(number);
+                table[hash][getBucketIndex(number)] = occurrence;
             } else {
                 occurrence.occurrences++;
             }
@@ -77,46 +82,33 @@ public class FrequencyQueries {
 
         private void del(int number) {
             int hash = hashFunction.calculateHash(number);
-
-            if (table[hash] == null) {
-                return;
-            }
-
             Occurrence occurrence = findOccurrence(table[hash], number);
             if (occurrence != null && occurrence.occurrences > 0) {
+                frequencyCount[occurrence.occurrences]--;
                 occurrence.occurrences--;
+                frequencyCount[occurrence.occurrences]++;
             }
         }
 
-        private Occurrence findOccurrence(List<Occurrence> occurrences, int number) {
+        private Occurrence findOccurrence(Occurrence[] occurrences, int number) {
             if (occurrences == null) {
                 return null;
             }
-
-            Occurrence occurrence = null;
-            for (Occurrence current : occurrences) {
-                if (current.number == number) {
-                    occurrence = current;
-                    break;
-                }
-            }
-            return occurrence;
+            return occurrences[getBucketIndex(number)];
         }
 
-        private int find(int number) {
-            int hash = hashFunction.calculateHash(number);
-            Occurrence occurrence = findOccurrence(table[hash], number);
-            if (occurrence != null) {
-                return occurrence.occurrences;
-            }
-            return 0;
+        int frequencyCount(int frequency) {
+            return frequency >= frequencyCount.length ? 0 : frequencyCount[frequency];
+        }
+
+        private int getBucketIndex(int number) {
+            return (number / hashFunction.cardinality);
         }
     }
 
     // Complete the freqQuery function below.
     private static List<Integer> freqQuery(List<List<Integer>> queries) {
-        HashTable frequencyByNumbers = new HashTable();
-        int[] frequencyCount = new int[queries.size()];
+        OccurrenceHashTable frequencyByNumbers = new OccurrenceHashTable(queries.size());
 
         List<Integer> result = new ArrayList<>();
         for (List<Integer> query : queries) {
@@ -125,47 +117,17 @@ public class FrequencyQueries {
 
             switch (operation) {
                 case 1:
-                    insertElement(data, frequencyByNumbers, frequencyCount);
+                    frequencyByNumbers.add(data);
                     break;
                 case 2:
-                    deleteElement(data, frequencyByNumbers, frequencyCount);
+                    frequencyByNumbers.del(data);
                     break;
                 case 3:
-                    searchByFrequency(data, frequencyCount, result);
+                    result.add(frequencyByNumbers.frequencyCount(data) == 0 ? 0 : 1);
                     break;
             }
         }
         return result;
-    }
-
-    private static void insertElement(int data, HashTable frequencyByNumbers, int[] frequencyCount) {
-        int freq = frequencyByNumbers.find(data);
-        if (freq > 0) {
-            frequencyCount[freq]--;
-        }
-
-        freq++;
-        frequencyCount[freq]++;
-
-        frequencyByNumbers.add(data);
-    }
-
-    private static void deleteElement(int data, HashTable frequencyByNumbers, int[] frequencyCount) {
-        int freq = frequencyByNumbers.find(data);
-        if (freq > 0) {
-            frequencyByNumbers.del(data);
-            frequencyCount[freq]--;
-            freq = freq - 1;
-            frequencyCount[freq]++;
-        }
-    }
-
-    private static void searchByFrequency(int freq, int[] frequencyCount, List<Integer> result) {
-        if (freq >= frequencyCount.length || frequencyCount[freq] == 0) {
-            result.add(0);
-        } else {
-            result.add(1);
-        }
     }
 
     public static void main(String[] args) throws IOException {
