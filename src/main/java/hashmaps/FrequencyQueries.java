@@ -21,17 +21,10 @@ public class FrequencyQueries {
             this.number = number;
             occurrences = 1;
         }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!(obj instanceof Occurrence)) {
-                return false;
-            }
-            return number == ((Occurrence)obj).number;
-        }
     }
 
     static class HashFunction {
+        static final int MAX_QUERIES = 100_000_000;
         static final int MAX_NUMBER = 1_000_000_000;
         static final int PRIME = 1_000_000_007;
 
@@ -53,7 +46,7 @@ public class FrequencyQueries {
 
 
         OccurrenceHashTable(int numQueries) {
-            this.hashFunction = new HashFunction(100_000_000);
+            this.hashFunction = new HashFunction(HashFunction.MAX_QUERIES);
             table = new Occurrence[hashFunction.cardinality][];
             frequencyCount = new int[numQueries];
         }
