@@ -101,12 +101,12 @@ public class ConnectedCellInGrid {
         }
 
         private void connectToAllNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
-            addTopNeighbours(grid, current, rowIndex, columnIndex);
-            addMiddleNeighbours(grid, current, rowIndex, columnIndex);
-            addBottomNeighbours(grid, current, rowIndex, columnIndex);
+            connectToTopNeighbours(grid, current, rowIndex, columnIndex);
+            connectToMiddleNeighbours(grid, current, rowIndex, columnIndex);
+            connectToBottomNeighbours(grid, current, rowIndex, columnIndex);
         }
 
-        private void addTopNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
+        private void connectToTopNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
             int topIndex = rowIndex - 1;
             if (topIndex >= 0) {
                 int leftIndex = columnIndex - 1;
@@ -121,7 +121,7 @@ public class ConnectedCellInGrid {
             }
         }
 
-        private void addMiddleNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
+        private void connectToMiddleNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
             int leftIndex = columnIndex - 1;
             int rightIndex = columnIndex + 1;
 
@@ -133,7 +133,7 @@ public class ConnectedCellInGrid {
             }
         }
 
-        private void addBottomNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
+        private void connectToBottomNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
             int bottomIndex = rowIndex + 1;
             if (bottomIndex < grid.length) {
                 int leftIndex = columnIndex - 1;
@@ -157,15 +157,11 @@ public class ConnectedCellInGrid {
             Stack<Node> nodeStack = new Stack<>();
             nodeStack.push(node);
             node.visited = true;
-
             node.region = node.region == null ? new Region(node) : node.region;
-
-            boolean adjacentOnesOnly = false;
 
             while (!nodeStack.isEmpty()) {
                 Node current = nodeStack.pop();
-                if (adjacentOnesOnly || current.filledNeighbours.size() > 0) {
-                    adjacentOnesOnly = true;
+                if (current.filledNeighbours.size() > 0) {
                     for (Node neighbour : current.filledNeighbours) {
                         if (!current.equals(neighbour) && !neighbour.visited) {
                             current.region.addNode(neighbour);
@@ -176,22 +172,17 @@ public class ConnectedCellInGrid {
                     }
                 } else {
                     for (Node other : current.neighbours) {
-                        if (!current.equals(other) && !other.visited) {
-                            other.visited = true;
-                            if (other.region == null) {
+                        if (!current.equals(other)) {
+                            if (!other.visited) {
+                                other.visited = true;
                                 current.region.addNode(other);
                                 other.region = current.region;
-                            } else {
+                            } else if ((!other.filled || other.filledNeighbours.size() == 0)
+                                    && !current.region.nodes.contains(other)) {
                                 Region region = current.region;
                                 current.region = other.region;
                                 current.region.addAllNodes(region.nodes);
-                            }
-                        } else {
-                            if (!current.region.nodes.contains(other)) {
-                                Region region = current.region;
-                                current.region = other.region;
-                                current.region.addAllNodes(region.nodes);
-                            }
+                             }
                         }
                     }
                 }
