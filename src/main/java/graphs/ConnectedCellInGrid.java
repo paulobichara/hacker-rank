@@ -10,28 +10,38 @@ import java.util.Stack;
 
 public class ConnectedCellInGrid {
 
-    private static class ConnectedComponent {
-        private int nonFilledSize;
-        private int filledSize;
+    private static class Region {
+        private int size;
+
+        Region() {
+            size = 1;
+        }
     }
 
     static class Node {
         List<Node> neighbours;
+        List<Node> filledNeighbours;
         int row;
         int column;
         boolean filled;
         boolean visited;
+        Region region;
 
-        Node(int row, int column) {
+        Node(int row, int column, boolean filled) {
             this.row = row;
             this.column = column;
-            filled = false;
+            this.filled = filled;
             visited = false;
             neighbours = new ArrayList<>();
+            filledNeighbours = new ArrayList<>();
+            region = null;
         }
 
         void addNeighbour(Node node) {
             neighbours.add(node);
+            if (node.filled) {
+                filledNeighbours.add(node);
+            }
         }
 
         @Override
@@ -47,16 +57,17 @@ public class ConnectedCellInGrid {
         private Node[][] nodes;
         private int lastVisited;
         private List<Node> filledNodes;
+        int[][] grid;
 
         Graph(int[][] grid) {
             lastVisited = -1;
             nodes = new Node[grid.length][grid.length > 0 ? grid[0].length : 0];
             filledNodes = new ArrayList<>();
+            this.grid = grid;
             for (int rowIndex = 0; rowIndex < grid.length; rowIndex++) {
                 for (int columnIndex = 0; columnIndex < grid[rowIndex].length; columnIndex++) {
                     Node current = getNode(rowIndex, columnIndex);
                     if (grid[rowIndex][columnIndex] == 1) {
-                        current.filled = true;
                         filledNodes.add(current);
                         connectToAllNeighbours(grid, current, rowIndex, columnIndex);
                     }
@@ -66,7 +77,7 @@ public class ConnectedCellInGrid {
 
         Node getNode(int rowIndex, int columnIndex) {
             if (nodes[rowIndex][columnIndex] == null) {
-                nodes[rowIndex][columnIndex] = new Node(rowIndex, columnIndex);
+                nodes[rowIndex][columnIndex] = new Node(rowIndex, columnIndex, grid[rowIndex][columnIndex] == 1);
             }
             return nodes[rowIndex][columnIndex];
         }
@@ -74,16 +85,9 @@ public class ConnectedCellInGrid {
         int getMaxRegion() {
             int maxRegion = 0;
             Node node;
-            ConnectedComponent component;
             while ((node = getNextUnvisitedNode()) != null) {
-                component = explore(node);
-                if (component.filledSize > 1) {
-                    maxRegion = Math.max(maxRegion, component.filledSize);
-                } else {
-                    maxRegion = Math.max(maxRegion, component.filledSize + component.nonFilledSize);
-                }
+                maxRegion = Math.max(explore(node), maxRegion);
             }
-
             return maxRegion;
         }
 
@@ -140,30 +144,49 @@ public class ConnectedCellInGrid {
             neighbour2.addNeighbour(neighbour1);
         }
 
-        private ConnectedComponent explore(Node node) {
+        private int explore(Node node) {
             Stack<Node> nodeStack = new Stack<>();
             nodeStack.push(node);
-
             node.visited = true;
 
-            ConnectedComponent component = new ConnectedComponent();
-            component.filledSize++;
+            node.region = node.region == null ? new Region() : node.region;
+
+            boolean adjacentOnesOnly = false;
 
             while (!nodeStack.isEmpty()) {
                 Node current = nodeStack.pop();
-                for (Node other : current.neighbours) {
-                    if (!current.equals(other) && !other.visited) {
-                        other.visited = true;
-                        if (other.filled) {
-                            component.filledSize++;
-                            nodeStack.push(other);
+                if (adjacentOnesOnly || current.filledNeighbours.size() > 0) {
+                    adjacentOnesOnly = true;
+                    for (Node neighbour : current.filledNeighbours) {
+                        if (!current.equals(neighbour) && !neighbour.visited) {
+                            current.region.size++;
+                            neighbour.region = current.region;
+                            neighbour.visited = true;
+                            nodeStack.push(neighbour);
+                        }
+                    }
+                } else {
+                    for (Node other : current.neighbours) {
+                        if (!current.equals(other) && !other.visited) {
+                            other.visited = true;
+                            if (other.region == null) {
+                                current.region.size++;
+                                other.region = current.region;
+                            } else {
+                                Region region = current.region;
+                                current.region = other.region;
+                                current.region.size += region.size;
+                            }
                         } else {
-                            component.nonFilledSize++;
+                            Region region = current.region;
+                            current.region = other.region;
+                            current.region.size += region.size;
                         }
                     }
                 }
+
             }
-            return component;
+            return node.region.size;
         }
 
         private Node getNextUnvisitedNode() {
