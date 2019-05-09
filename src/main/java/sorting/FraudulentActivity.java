@@ -31,7 +31,7 @@ public class FraudulentActivity {
     }
 
     private static int[] includeNumber(int[] sorted, int number, int expired) {
-        int[] result = new int[sorted.length + 1];
+        int[] result = new int[sorted.length];
         int resultIndex = 0;
 
         int sortedIndex;
