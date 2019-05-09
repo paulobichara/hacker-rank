@@ -15,7 +15,7 @@ public class ConnectedCellInGrid {
         private int filledSize;
     }
 
-    private static class Node {
+    static class Node {
         List<Node> neighbours;
         int row;
         int column;
@@ -43,14 +43,14 @@ public class ConnectedCellInGrid {
         }
     }
 
-    private static class Graph {
+    static class Graph {
         private Node[][] nodes;
         private int lastVisited;
         private List<Node> filledNodes;
 
         Graph(int[][] grid) {
             lastVisited = -1;
-            nodes = new Node[grid.length][grid.length];
+            nodes = new Node[grid.length][grid.length > 0 ? grid[0].length : 0];
             filledNodes = new ArrayList<>();
             for (int rowIndex = 0; rowIndex < grid.length; rowIndex++) {
                 for (int columnIndex = 0; columnIndex < grid[rowIndex].length; columnIndex++) {
@@ -94,45 +94,43 @@ public class ConnectedCellInGrid {
         }
 
         private void addTopNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
-            // Top neighbours
-            if (rowIndex > 0) {
-                // Top middle neighbour
-                connectNeighbours(current, getNode(rowIndex - 1, columnIndex));
+            int topIndex = rowIndex - 1;
+            if (topIndex > 0) {
+                int leftIndex = columnIndex - 1;
+                int rightIndex = columnIndex + 1;
+                connectNeighbours(current, getNode(topIndex, columnIndex));
                 if (columnIndex > 0) {
-                    // Top left neighbour
-                    connectNeighbours(current, getNode(rowIndex - 1, columnIndex - 1));
+                    connectNeighbours(current, getNode(topIndex, leftIndex));
                 }
-                if (columnIndex + 1 < grid[rowIndex].length) {
-                    // Top right neighbour
-                    connectNeighbours(current, getNode(rowIndex - 1, columnIndex + 1));
+                if (rightIndex < grid[topIndex].length) {
+                    connectNeighbours(current, getNode(topIndex, rightIndex));
                 }
             }
         }
 
         private void addMiddleNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
-            // Middle left neighbour
-            if (columnIndex > 0) {
-                connectNeighbours(current, getNode(rowIndex, columnIndex - 1));
+            int leftIndex = columnIndex - 1;
+            int rightIndex = columnIndex + 1;
+
+            if (leftIndex > 0) {
+                connectNeighbours(current, getNode(rowIndex, leftIndex));
             }
-            if (columnIndex + 1 < grid[rowIndex].length) {
-                // Middle right neighbour
-                connectNeighbours(current, getNode(rowIndex, columnIndex + 1));
+            if (rightIndex < grid[rowIndex].length) {
+                connectNeighbours(current, getNode(rowIndex, rightIndex));
             }
         }
 
         private void addBottomNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
-            // Bottom neighbours
             int bottomIndex = rowIndex + 1;
             if (bottomIndex < grid.length) {
-                // Bottom middle neighbour
+                int leftIndex = columnIndex - 1;
+                int rightIndex = columnIndex + 1;
                 connectNeighbours(current, getNode(bottomIndex, columnIndex));
-                if (columnIndex + 1 < grid[bottomIndex].length) {
-                    // Bottom right neighbour
-                    connectNeighbours(current, getNode(rowIndex + 1, columnIndex + 1));
+                if (rightIndex < grid[bottomIndex].length) {
+                    connectNeighbours(current, getNode(bottomIndex, rightIndex));
                 }
-                if (columnIndex > 0) {
-                    // Bottom left neighbour
-                    connectNeighbours(current, getNode(rowIndex + 1, columnIndex - 1));
+                if (leftIndex > 0) {
+                    connectNeighbours(current, getNode(bottomIndex, leftIndex));
                 }
             }
         }
