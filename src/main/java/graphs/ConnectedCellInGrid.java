@@ -11,10 +11,19 @@ import java.util.Stack;
 public class ConnectedCellInGrid {
 
     private static class Region {
-        private int size;
+        private List<Node> nodes;
 
-        Region() {
-            size = 1;
+        Region(Node node) {
+            nodes = new ArrayList<>();
+            addNode(node);
+        }
+
+        void addNode(Node node) {
+            nodes.add(node);
+        }
+
+        void addAllNodes(List<Node> nodes) {
+            this.nodes.addAll(nodes);
         }
     }
 
@@ -99,11 +108,11 @@ public class ConnectedCellInGrid {
 
         private void addTopNeighbours(int[][] grid, Node current, int rowIndex, int columnIndex) {
             int topIndex = rowIndex - 1;
-            if (topIndex > 0) {
+            if (topIndex >= 0) {
                 int leftIndex = columnIndex - 1;
                 int rightIndex = columnIndex + 1;
                 connectNeighbours(current, getNode(topIndex, columnIndex));
-                if (columnIndex > 0) {
+                if (leftIndex >= 0) {
                     connectNeighbours(current, getNode(topIndex, leftIndex));
                 }
                 if (rightIndex < grid[topIndex].length) {
@@ -116,7 +125,7 @@ public class ConnectedCellInGrid {
             int leftIndex = columnIndex - 1;
             int rightIndex = columnIndex + 1;
 
-            if (leftIndex > 0) {
+            if (leftIndex >= 0) {
                 connectNeighbours(current, getNode(rowIndex, leftIndex));
             }
             if (rightIndex < grid[rowIndex].length) {
@@ -133,7 +142,7 @@ public class ConnectedCellInGrid {
                 if (rightIndex < grid[bottomIndex].length) {
                     connectNeighbours(current, getNode(bottomIndex, rightIndex));
                 }
-                if (leftIndex > 0) {
+                if (leftIndex >= 0) {
                     connectNeighbours(current, getNode(bottomIndex, leftIndex));
                 }
             }
@@ -149,7 +158,7 @@ public class ConnectedCellInGrid {
             nodeStack.push(node);
             node.visited = true;
 
-            node.region = node.region == null ? new Region() : node.region;
+            node.region = node.region == null ? new Region(node) : node.region;
 
             boolean adjacentOnesOnly = false;
 
@@ -159,7 +168,7 @@ public class ConnectedCellInGrid {
                     adjacentOnesOnly = true;
                     for (Node neighbour : current.filledNeighbours) {
                         if (!current.equals(neighbour) && !neighbour.visited) {
-                            current.region.size++;
+                            current.region.addNode(neighbour);
                             neighbour.region = current.region;
                             neighbour.visited = true;
                             nodeStack.push(neighbour);
@@ -170,23 +179,25 @@ public class ConnectedCellInGrid {
                         if (!current.equals(other) && !other.visited) {
                             other.visited = true;
                             if (other.region == null) {
-                                current.region.size++;
+                                current.region.addNode(other);
                                 other.region = current.region;
                             } else {
                                 Region region = current.region;
                                 current.region = other.region;
-                                current.region.size += region.size;
+                                current.region.addAllNodes(region.nodes);
                             }
                         } else {
-                            Region region = current.region;
-                            current.region = other.region;
-                            current.region.size += region.size;
+                            if (!current.region.nodes.contains(other)) {
+                                Region region = current.region;
+                                current.region = other.region;
+                                current.region.addAllNodes(region.nodes);
+                            }
                         }
                     }
                 }
 
             }
-            return node.region.size;
+            return node.region.nodes.size();
         }
 
         private Node getNextUnvisitedNode() {

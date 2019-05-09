@@ -18,7 +18,7 @@ public class ConnectedCellInGridTest {
                                     { 0, 0, 1, 0 },
                                     { 1, 0, 0, 0 } }, 5);
 
-        assertInput(new int[][] {{ 1, 0, 1, 0 }}, 4);
+        assertInput(new int[][]     {{ 1, 0, 1, 0 }}, 4);
 
         assertInput(new int[][] {   { 1, 0, 1, 1, 0 },
                                     { 1, 1, 0, 0, 1 },
@@ -31,6 +31,10 @@ public class ConnectedCellInGridTest {
                                     { 0, 1, 1, 0 },
                                     { 0, 1, 0, 0 },
                                     { 1, 1, 0, 0 } }, 8);
+
+        assertInput(new int[][] {   { 0, 0, 0 },
+                                    { 1, 0, 1 },
+                                    { 0, 0, 0 } }, 9);
     }
 
     @Test
