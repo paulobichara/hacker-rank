@@ -182,7 +182,7 @@ public class ConnectedCellInGrid {
                                 Region region = current.region;
                                 current.region = other.region;
                                 current.region.addAllNodes(region.nodes);
-                             }
+                            }
                         }
                     }
                 }
