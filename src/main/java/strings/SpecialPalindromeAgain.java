@@ -12,6 +12,10 @@ public class SpecialPalindromeAgain {
 
     // Complete the substrCount function below.
     private static long substrCount(int charQty, String text) {
+        return 0L;
+    }
+
+    private static long substrCountNaive(int charQty, String text) {
         long count = 0;
         for (int index = 0; index < charQty; index++) {
             for (int length = 1; index + length <= charQty; length++) {
