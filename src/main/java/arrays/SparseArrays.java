@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 public class SparseArrays {
     // Complete the matchingStrings function below.
-    static int[] matchingStrings(String[] words, String[] queries) {
+    private static int[] matchingStrings(String[] words, String[] queries) {
         Map<String, Integer> frequencyMap = new HashMap<>();
         Stream.of(words).forEach(word -> frequencyMap.put(word, frequencyMap.getOrDefault(word, 0) + 1));
 
